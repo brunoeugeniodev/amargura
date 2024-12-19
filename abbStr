@@ -1,0 +1,287 @@
+#include <iostream>
+#include<queue>
+#include<string>
+#include<cstring>
+
+using namespace std;
+
+struct Node {
+    string value;
+    Node *left, *right;
+
+    Node() {
+        left = NULL;
+        right = NULL;
+    }
+
+    Node(string _value) {
+        value = _value;
+        left = NULL;
+        right = NULL;
+    }
+    int g() {
+        int g = 0;
+        if (left != NULL) g++;
+        if (right != NULL) g++;
+        return g;
+    }
+};
+
+struct Tree {
+    Node *root;
+    int tam = 0;
+
+    Tree() {
+        root = NULL;
+    }
+    bool empty() {
+        return root == NULL;
+    }
+
+
+    void insert(string value) {
+        if (empty()) {
+            root = new Node(value);
+            tam++;
+            return;
+        }
+        insert(root, value);
+    }
+
+    void insert(Node *aux, string value) {
+        if (strcmp(value.c_str(), aux->value.c_str()) < 0) {
+            if (aux->left == NULL) {
+                aux->left = new Node(value);
+                tam++;
+                return;
+            }
+            insert(aux->left, value);
+        } else if (strcmp(value.c_str(), aux->value.c_str()) > 0) {
+            if (aux->right == NULL) {
+                aux->right = new Node(value);
+                tam++;
+                return;
+            }
+            insert(aux->right, value);
+        }
+    }
+
+    bool search(string value) {
+        Node *aux = root;
+        while (aux != NULL) {
+            if (strcmp(value.c_str(), aux->value.c_str()) == 0){
+                return true;
+            } else if (strcmp(value.c_str(), aux->value.c_str()) < 0){
+                aux = aux->left;
+            } else if (strcmp(value.c_str(), aux->value.c_str()) > 0){
+                aux = aux->right;
+            }
+        }
+        return false;
+    }
+
+    void inOrder() {
+        inOrder(root);
+        printf("\n");
+    }
+
+    void inOrder(Node *aux) {
+        if (aux == NULL) return;
+        inOrder(aux->left);
+        cout << aux->value << " ";
+        inOrder(aux->right);
+    }
+
+    void preOrder() {
+        preOrder(root);
+        printf("\n");
+    }
+
+    void preOrder(Node *aux) {
+        if (aux == NULL) return;
+        cout << aux->value << " ";
+        preOrder(aux->left);
+        preOrder(aux->right);
+    }
+
+    void posOrder() {
+        postOrder(root);
+        printf("\n");
+    }
+    void postOrder(Node *aux) {
+        if (aux == NULL) return;
+        postOrder(aux->left);
+        postOrder(aux->right);
+        cout << aux->value << " ";
+    }
+
+    void levelOrder() {
+        if (empty()) {
+            printf("A árvore está vazia.\n");
+            return;
+        }
+
+        queue<Node*> q;
+        q.push(root);
+
+        while (!q.empty()) {
+            Node* current = q.front();
+            q.pop();
+
+            cout << current->value << " ";
+
+            if (current->left != NULL) q.push(current->left);
+            if (current->right != NULL) q.push(current->right);
+        }
+
+        printf("\n");
+    }
+
+    void remove(string value) {
+        if (!empty() && strcmp(root->value.c_str(), value.c_str()) == 0) {
+            if (root->g() == 0) {
+                delete root;
+                tam--;
+                root = NULL;
+            } else if (root->g() == 1) {
+                Node* toDel = root;
+                if (root->left != NULL) {
+                    root = root->left;
+                } else {
+                    root = root->right;
+                }
+                delete toDel;
+                tam--;
+            } else {
+                Node* toDel = root;
+                Node* aux2 = root->left;
+                while (aux2->right != NULL) {
+                    aux2 = aux2->right;
+                }
+                aux2->right = root->right;
+                root = root->left;
+                delete toDel;
+                tam--;
+            }
+            return;
+        }
+
+        Node* aux = root;
+        Node* toDel = root;
+
+        while (toDel != NULL) {
+            if (strcmp(toDel->value.c_str(), value.c_str()) == 0) {
+                if (toDel->g() == 0) {
+                    if (strcmp(value.c_str(), aux->value.c_str()) > 0) {
+                        aux->right = NULL;
+                    } else {
+                        aux->left = NULL;
+                    }
+                    delete toDel;
+                    tam--;
+                } else if (toDel->g() == 1) {
+                    Node* toMove = (toDel->left != NULL) ? toDel->left : toDel->right;
+                    if (strcmp(value.c_str(), aux->value.c_str()) > 0) {
+                        aux->right = toMove;
+                    } else {
+                        aux->left = toMove;
+                    }
+                    delete toDel;
+                    tam--;
+                } else {
+                    Node* aux2 = toDel->left;
+                    while (aux2->right != NULL) {
+                        aux2 = aux2->right;
+                    }
+                    aux2->right = toDel->right;
+                    if (strcmp(value.c_str(), aux->value.c_str()) > 0) {
+                        aux->right = toDel->left;
+                    } else {
+                        aux->left = toDel->left;
+                    }
+                    delete toDel;
+                    tam--;
+                }
+                return;
+            } else if (strcmp(value.c_str(), toDel->value.c_str()) < 0) {
+                aux = toDel;
+                toDel = toDel->left;
+            } else {
+                aux = toDel;
+                toDel = toDel->right;
+            }
+        }
+    }
+
+
+    void limpaTree(Node* aux) {
+        if (aux == NULL) return;
+
+        limpaTree(aux->left);
+        limpaTree(aux->right);
+
+        delete aux;
+        aux = NULL;
+
+    }
+
+};
+
+int main() {
+    Tree t;
+    int opcao;
+    string str;
+    do {
+        cout << "0 - Sair\n";
+        cout << "1 - Inserir\n";
+        cout << "2 - Buscar\n";
+        cout << "3 - Imprimir\n";
+        cout << "4 - Remover\n";
+        cout << "5 - Quantia de nos\n";
+        cin >> opcao;
+
+        switch (opcao) {
+            case 0:
+                cout << "Saindo\n";
+                break;
+            case 1:
+                cout << "Digite a string que deseja inserir:\n";
+                cin >> str;
+                t.insert(str);
+                break;
+            case 2:
+                cout << "Digite a string que deseja buscar:\n";
+                cin >> str;
+                if (t.search(str)) {
+                    cout << "Existe\n";
+                } else {
+                    cout << "Não existe\n";
+                }
+                break;
+            case 3:
+                cout << "Escolha o tipo de impressao: \n1 - PreOrder \n2 - InOrder \n3 - PosOrder \n4 - LevelOrder\n";
+                cin >> opcao;
+                if (opcao == 1) t.preOrder();
+                else if (opcao == 2) t.inOrder();
+                else if (opcao == 3) t.posOrder();
+                else if (opcao == 4) t.levelOrder();
+                else cout << "Opção inválida.\n";
+                break;
+            case 4:
+                cout << "Digite a string que deseja remover:\n";
+                cin >> str;
+                t.remove(str);
+                break;
+            case 5:
+                cout << "A quantidade de nos:" << t.tam << "\n";
+                break;
+            default:
+                cout << "Nenhuma opçao valida\n";
+                break;
+        }
+    } while (opcao > 0);
+
+    return 0;
+}
+
+
